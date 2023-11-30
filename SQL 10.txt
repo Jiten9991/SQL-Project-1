@@ -1,0 +1,119 @@
+use emp
+
+select * from emp1;
+
+--using limit
+
+SELECT * FROM emp1 ORDER BY salary DESC
+LIMIT 1 OFFSET 1;
+
+using sub query
+select max(salary) from emp1 where salary < (select max(salary) from emp1);
+
+employees details less then 2nd highest salary
+select * from emp1 where salary <
+(select max(salary) from emp1 where salary < (select max(salary) from emp1));
+
+employees details of 2nd higest salary
+select * from emp1 where salary =
+(select max(salary) from emp1 where salary < (select max(salary) from emp1));
+
+select * from emp1;
+
+--using dense_rank
+select * from emp1 where salary =
+(select salary, dense_rank ( ) over ( order by salary desc ) as rn from emp1) as ranked_salaries
+where rn = 2
+
+
+select * from 
+(select emp1.*, dense_rank ( ) over ( order by salary desc ) as rn from emp1) as ranked_salaries
+where rn = 2
+
+SELECT salary
+FROM (
+    SELECT salary, DENSE_RANK() OVER (ORDER BY salary DESC) AS rank
+    FROM employees
+) AS ranked_salaries
+WHERE rank = 2;
+
+nested query
+
+SELECT Salary FROM Emp1 E1
+WHERE 2 = (
+SELECT COUNT( DISTINCT ( E2.Salary ) )
+FROM Emp1 E2
+WHERE E2.Salary > E1.Salary );
+
+
+
+--Q7(a): Write a query to find and remove duplicate records from a table.
+
+
+--oracle
+
+DELETE FROM emp1
+WHERE empid NOT IN (
+    SELECT MIN(empid)
+    FROM emp1
+    GROUP BY empid
+);
+
+ms sql
+
+WITH CTE AS (
+  SELECT 
+    column1, column2, column3, 
+    ROW_NUMBER() OVER (PARTITION BY column1, column2, column3 ORDER BY id) AS rn
+  FROM your_table
+)
+DELETE FROM CTE WHERE rn > 1;
+
+
+Q7(b): Query to retrieve the list of employees working in same project.
+
+
+WITH CTE AS 
+(SELECT e.EmpID, e.EmpName, ed.Project
+FROM Emp1 AS e
+INNER JOIN Emp1Detail AS ed 
+ON e.EmpID = ed.EmpID)
+SELECT c1.EmpName, c2.EmpName, c1.project 
+FROM CTE c1, CTE c2
+WHERE c1.Project = c2.Project AND c1.EmpID != c2.EmpID AND c1.EmpID < c2.EmpID
+
+
+
+##Q8: Show the employee with the highest salary for each project
+
+SELECT Ed.Project, MAX(E.salary) as ProjectSal From Emp1 as E
+INNER JOIN Emp1Detail as Ed on E.Empid = Ed.Empid
+Group By ed.project
+Order By ProjectSal Desc;
+
+With CTE As
+( select project, EmpName, salary,  Dense_rank() over (partition by project order by salary desc) as rn from Emp1 E
+inner join Emp1detail Ed on E.Empid = Ed.Empid)
+select Empname, project, salary from CTE
+where rn = 1
+
+WITH CTE AS (
+    SELECT
+        project,
+        EmpName,
+        salary,
+        ROW_NUMBER() OVER (PARTITION BY project ORDER BY salary DESC) AS rn
+    FROM Emp1 E
+    INNER JOIN Emp1detail Ed ON E.Empid = Ed.Empid
+)
+SELECT Empname, project, salary
+FROM CTE
+WHERE rn = 1;
+
+##Q9: Query to find the total count of employees joined each year
+
+
+SELECT YEAR(jd.DOJ) AS joining_year, COUNT(*) AS total_employees_joined
+FROM emp1 e
+INNER JOIN emp1detail jd ON e.empid = jd.empid
+GROUP BY joining_year;
