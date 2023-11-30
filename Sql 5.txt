@@ -1,0 +1,246 @@
+create database Emp;
+
+use Emp;
+
+create table Emp1 (
+Empid int NOT Null,
+EmpName Varchar(10),
+Gender char(2),
+Salary int,
+city Varchar(20)
+) ;
+
+INSERT INTO Emp1 VALUES (1, 'Arjun', 'M', 75000, 'Pune'),
+(2, 'Ekadanta', 'M', 125000, 'Bangalore'),
+(3, 'Lalita', 'F', 150000 , 'Mathura'),
+(4, 'Madhav', 'M', 250000 , 'Delhi'),
+(5, 'Visakha', 'F', 120000 , 'Mathura')
+
+Create table Emp1Detail (
+Empid int Not Null,
+project Varchar(5),
+EmpPosition Varchar(10),
+DOJ date ) ;
+
+INSERT INTO Emp1Detail
+VALUES (1, 'P1', 'Executive', '2019-01-26'),
+(2, 'P2', 'Executive', '2020-05-04'),
+(3, 'P1', 'Lead', '2021-10-21'),
+(4, 'P3', 'Manager', '2019-11-29'),
+(5, 'P2', 'Manager', '2020-08-01') 
+
+
+select * from Emp1;
+select * from Emp1detail;
+
+--Q1(a): Find the list of employees whose salary ranges between 2L to 3L.
+
+select * from Emp1 where salary > 200000 and salary < 300000 ;
+select * from Emp1 where salary between 200000 and 300000 ;
+
+--Q1(b): Write a query to retrieve the list of employees from the same city.
+ 
+ select * from emp1
+ 
+ Select E1.empid, E1.EmpName, E1.city from Emp1 E1,Emp1 E2
+ where E1.city = E2.city and E1.empid != E2. empid
+
+--Q1(c): Query to find the null values in the Employee table. 
+
+select * from Emp1 where Empid is Null;
+
+--Q2(a): Query to find the cumulative sum of employee’s salary.
+
+select Empid,salary, Sum(salary) over (order by EMpid) as Cumlative_salary
+from Emp1;
+
+--Q2(b): What’s the male and female employees ratio.
+
+select * from emp1;
+--count total num of male
+select count(*) as total_male_employee from emp1
+where Gender ='M';
+--count total num of female
+select count(*) as total_male_employee from emp1
+where Gender ='F';
+
+
+select
+(select count(*) from emp1 where Gender = 'M') as Total_male_Emp,
+(select count(*) from emp1 where Gender = 'F') as Total_Female_Emp,
+(select count(*) from emp1 where Gender ='M') / (select count(*) from emp1 where Gender ='F') as male_to_female_ratio;
+
+SELECT
+  (SUM(CASE WHEN Gender = 'M' THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) AS MalePct,
+  (SUM(CASE WHEN Gender = 'F' THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) AS FemalePct
+FROM Emp1;
+
+SELECT
+(COUNT(*) FILTER (WHERE Gender = 'M') * 100.0 / COUNT(*)) AS MalePct,
+(COUNT(*) FILTER (WHERE Gender = 'F') * 100.0 / COUNT(*)) AS FemalePct
+FROM Employee;
+
+--Q2(c): Write a query to fetch 50% records from the Employee table.
+select * from emp1 
+where Empid <= (select count(*)/2 from emp1);
+
+
+--##Q3:
+ Query to fetch the employee’s salary but replace the LAST 2 digits with ‘XX’ 
+i.e 12345 will be 123XX
+
+--Mysql
+SELECT Salary, 
+CONCAT(LEFT(Salary, LENGTH(Salary)-2), 'XX') as Marked_salary
+FROM Emp1;
+
+--Oracle/MySql
+SELECT
+  Salary,
+  CONCAT(SUBSTR(Salary, 1, LENGTH(Salary)-2), 'XX') AS masked_salary
+FROM Emp1;
+
+--Postgrd Sql
+
+SELECT Salary, 
+CONCAT(SUBSTRING(Salary::text, 1, LENGTH(Salary::text)-2), 'XX') as masked_number
+FROM Employee
+
+--- OR –--
+
+SELECT Salary, CONCAT(LEFT(CAST(Salary AS text), LENGTH(CAST(Salary AS text))-2), 'XX') 
+AS masked_number
+FROM Employee
+
+--##Q4
+
+Write a query to fetch even and odd rows from Employee table
+
+use emp;
+
+select * from 
+(select *, row_number( ) over (order by empid) 
+as rn from emp1) emp
+where emp.rn % 2 = 0
+
+select * from 
+(select *, row_number( ) over (order by empid) 
+as rn from emp1) emp
+where emp.rn % 2 = 1
+
+select distinct empname from emp1 where empid%2 = 0 
+
+--##Oracle/ Ms sql
+select * from emp1 where Empid % 2 = 0;
+
+select * from emp1 where Empid % 2 = 1;
+
+--## Q5(a): Write a query to find all the Employee names whose name:
+• Begin with ‘A’
+• Contains ‘A’ alphabet at second place
+• Contains ‘Y’ alphabet at second last place
+• Ends with ‘L’ and contains 4 alphabets 
+• Begins with ‘V’ and ends with ‘A
+
+use emp
+select * from emp1 where EmpName like 'A%' ;
+select * from emp1 where empname like '_a%' ;
+select * from emp1 where empname like '_y%' ;
+select * from emp1 where empname like '____n' ;
+select * from emp1 where empname like 'V%a' ;
+
+Q5(b): Write a query to find the list of Employee names which is:
+
+• starting with vowels (a, e, i, o, or u), without duplicates
+
+Select Distinct Empname from Emp where lower(left(empname,1) in (a,e,i,o,u)
+--mysql
+
+select distinct empname from emp1
+where lower(empname) REGEXP '^[aeiou]' ;
+
+• ending with vowels (a, e, i, o, or u), without duplicates
+
+select distinct empname from emp1
+where lower(empname) REGEXP '[aeiou]$' ;
+
+• starting & ending with vowels (a, e, i, o, or u), without duplicate
+
+select distinct empname from emp1
+where lower(empname) REGEXP '^[aeiou]$,*[aeiou]$' ;
+
+SELECT DISTINCT EmpName
+FROM Emp1
+WHERE EmpName REGEXP '^[aeiouAEIOU].*[aeiouAEIOU]$';
+
+
+
+--oracle
+
+• starting with vowels (a, e, i, o, or u), without duplicates
+
+
+SELECT DISTINCT EmpName
+FROM emp1
+WHERE REGEXP_LIKE(EmpName, '^[aeiou]', 'i');
+
+
+SELECT DISTINCT empname
+FROM emp1
+WHERE REGEXP_LIKE(LOWER(empname), '^[aeiou]');
+
+• ending with vowels (a, e, i, o, or u), without duplicates
+
+SELECT DISTINCT EmpName
+FROM emp1
+WHERE REGEXP_LIKE(EmpName, '[aeiou]$', 'i');
+
+SELECT DISTINCT empname
+FROM emp1
+WHERE REGEXP_LIKE(LOWER(empname), '[aeiou]$');
+
+• starting & ending with vowels (a, e, i, o, or u), without duplicate
+
+SELECT DISTINCT empname
+FROM emp1
+WHERE REGEXP_LIKE(LOWER(empname), '^[aeiou].*[aeiou]$');
+
+SELECT DISTINCT EmpName
+FROM Emp1
+WHERE REGEXP_LIKE(EmpName, '^[aeiouAEIOU].*[aeiouAEIOU]$', 'i');
+
+
+
+--Ms sql 
+
+SELECT DISTINCT EmpName
+FROM emp1
+WHERE LOWER(EmpName) LIKE '[aeiou]%';
+
+SELECT DISTINCT EmpName
+FROM emp1
+WHERE LOWER(EmpName) LIKE '%[aeiou]';
+
+
+SELECT DISTINCT Emp_Name
+FROM Emp
+WHERE Emp_Name LIKE '[aeiouAEIOU]%' AND Emp_Name LIKE '%[aeiouAEIOU]';
+
+
+
+--Ms sql
+
+• starting with vowels (a, e, i, o, or u), without duplicates
+
+SELECT DISTINCT EmpName
+FROM emp1
+WHERE LOWER(SUBSTRING(EmpName, 1, 1)) IN ('a', 'e', 'i', 'o', 'u');
+
+SELECT DISTINCT EmpName
+FROM emp1
+WHERE LOWER(RIGHT(EmpName, 1)) IN ('a', 'e', 'i', 'o', 'u');
+
+
+SELECT DISTINCT Emp_Name
+FROM Emp
+WHERE Emp_Name LIKE '[aeiouAEIOU]%' AND Emp_Name LIKE '%[aeiouAEIOU]';
